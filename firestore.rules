@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// Paste this in Firebase Console -> Firestore Database -> Rules, then Publish.
+// It lets anyone who has the app read the list and add restaurants/ratings
+// (there's no login screen in this app), but blocks editing or deleting
+// existing data, and blocks writing anything shaped differently than the
+// app's own fields. That's a reasonable trade-off for a small friend-group
+// app with no backend to run and no accounts to manage.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(
+          ['name', 'location', 'mapsUrl', 'createdAt', 'ratingCount',
+           'sumTaste', 'sumAmbience', 'sumQuality', 'sumService']);
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['ratingCount', 'sumTaste', 'sumAmbience', 'sumQuality', 'sumService']);
+      allow delete: if false;
+    }
+  }
+}
